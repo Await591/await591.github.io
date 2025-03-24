@@ -152,6 +152,22 @@
             margin-top: 50px;
             color: #666;
         }
+
+        @keyframes fadeInFromBottom {
+            0% {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container *,
+        footer * {
+            animation: fadeInFromBottom 1s ease-out;
+        }
     </style>
 </head>
 
@@ -209,3 +225,4 @@
 </body>
 
 </html>
+    
