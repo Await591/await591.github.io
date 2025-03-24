@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>await591.github.io</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
         }
 
         body {
@@ -24,10 +26,87 @@
             padding: 30px;
         }
 
-        h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #4CAF50;
+        .glitch {
+            font-size: 4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow:
+                0.05em 0 0 rgba(255, 0, 0, 0.75),
+                -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
+                0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+            animation: glitch 500ms infinite;
+            position: relative;
+        }
+
+        .glitch span {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .glitch span:first-child {
+            animation: glitch 650ms infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            transform: translate(-0.025em, -0.025em);
+            opacity: .8;
+        }
+
+        .glitch span:last-child {
+            animation: glitch 375ms infinite;
+            clip-path: polygon(0 80%, 100% 20%, 100% 100%, 0 100%);
+            transform: translate(0.0125em, 0.025em);
+            opacity: .8;
+        }
+
+        @keyframes glitch {
+            0% {
+                text-shadow:
+                    0.05em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            14% {
+                text-shadow:
+                    0.05em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            15% {
+                text-shadow:
+                    -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+                    0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            49% {
+                text-shadow:
+                    -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+                    0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            50% {
+                text-shadow:
+                    0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+                    0.05em 0 0 rgba(0, 255, 0, 0.75),
+                    0 -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            99% {
+                text-shadow:
+                    0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+                    0.05em 0 0 rgba(0, 255, 0, 0.75),
+                    0 -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            100% {
+                text-shadow:
+                    -0.025em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.025em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
         }
 
         .subheader {
@@ -75,11 +154,16 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>Await591</h1>
+        <h1 class="glitch">
+            <span>Await591</span>
+            Await591
+            <span>Await591</span>
+        </h1>
         <div class="subheader">Music Producer | N00B Developer</div>
-        
+
         <div class="tagline">
             "I'm good at making stupid midi/code"
         </div>
@@ -107,20 +191,21 @@
         <div class="section">
             <h2>Contact</h2>
             <ul>
-                <li>GitHub:     <a href="https://github.com/Await591">github.com/await591</a></li>
-                <li>X:          <a href="https://x.com/Await591">x.com/await591</a></li>
-                <li>IG:         <a href="https://www.instagram.com/await591_music">instagram.com/await591_music</a></li>
-                <li>Spotify:    <a href="spotify.com/artist/7Mmb772bbfXAnMHCsCpdge">Await591</a></li>
+                <li>GitHub: <a href="https://github.com/Await591">github.com/await591</a></li>
+                <li>X: <a href="https://x.com/Await591">x.com/await591</a></li>
+                <li>IG: <a href="https://www.instagram.com/await591_music">instagram.com/await591_music</a></li>
+                <li>Spotify: <a href="spotify.com/artist/7Mmb772bbfXAnMHCsCpdge">Await591</a></li>
                 <li>SoundCloud: <a href="https://soundcloud.com/await591_music">soundcloud.com/await591_music</a></li>
-                <li>Email:      <a href="mailto:Await591@Outlook.com">await591@outlook.com</a></li>
+                <li>Email: <a href="mailto:Await591@Outlook.com">await591@outlook.com</a></li>
             </ul>
         </div>
     </div>
 
     <footer>
-        <a href="https://github.com/await591/">await591 . github . io</a> 
+        <a href="https://github.com/await591/">await591 . github . io</a>
         &
         <a href="https://linktr.ee/await591">linktr . ee / await591</a>
     </footer>
 </body>
+
 </html>
