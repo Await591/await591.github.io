@@ -34,7 +34,6 @@
             flex-direction: column;
         }
 
-        /* Matrix Rain Effect */
         #matrix-rain {
             position: fixed;
             top: 0;
@@ -136,22 +135,19 @@
             padding: 20px;
             position: relative;
             overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
         }
 
-        .grid-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--neon-green);
-            animation: scan 2s linear infinite;
+        .grid-item.visible {
+            transform: translateY(0);
+            opacity: 1;
         }
 
-        @keyframes scan {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(100%); }
+        .grid-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
 
         .stats-container {
@@ -205,11 +201,31 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
         .section h2::before {
             content: '>';
             color: var(--neon-green);
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--neon-green);
+            transform: translateX(-100%);
+            animation: slideIn 0.5s forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateX(0);
+            }
         }
 
         .section ul {
@@ -234,40 +250,48 @@
             color: var(--cyber-blue);
             text-decoration: none;
             position: relative;
+            padding: 2px 4px;
             transition: color 0.3s;
         }
 
         .section a:hover {
-            color: var(--neon-pink);
+            text-shadow: 0 0 8px var(--neon-green);
+        }
+
+        .section a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--neon-green);
+            opacity: 0;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: -1;
         }
 
         .section a:hover::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -2px;
-            width: 100%;
-            height: 1px;
-            background: var(--neon-pink);
-            animation: glitch 0.3s infinite;
-        }
-
-        @keyframes glitch {
-            0% { transform: translateX(-2px); }
-            25% { transform: translateX(2px); }
-            50% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
-            100% { transform: translateX(0); }
+            transform: scaleX(1);
+            opacity: 0.1;
         }
 
         .cli-container {
             position: fixed;
-            bottom: 20px;
+            bottom: -200px;
             right: 20px;
             width: 400px;
             background: var(--terminal-bg);
             border: 1px solid var(--neon-green);
             z-index: 1000;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cli-container.visible {
+            bottom: 20px;
             opacity: 0.9;
         }
 
@@ -314,25 +338,309 @@
             margin-top: auto;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
-                padding: 15px;
+                padding: 10px;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .subheader {
+                font-size: 1.2rem;
             }
 
             .grid-container {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
             }
 
             .cli-container {
-                display: none;
+                display: none !important;
+            }
+
+            .section {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .subheader {
+                font-size: 1rem;
+            }
+
+            .loading-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--terminal-bg);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-content {
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .loading-header {
+            margin-bottom: 2rem;
+            position: relative;
+            text-align: center;
+        }
+
+        .loading-header h1 {
+            color: var(--neon-green);
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+            animation: glitch 1s infinite;
+        }
+
+        .loading-progress {
+            margin-bottom: 2rem;
+        }
+
+        .loading-progress .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 0, 0.2);
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--neon-green);
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .loading-status {
+            color: var(--neon-green);
+            text-align: center;
+            font-size: 0.9rem;
+            height: 1.2em;
+        }
+
+        .loading-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--neon-green);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .detail-item[data-status="complete"] {
+            opacity: 1;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--neon-green);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .detail-item[data-status="complete"] .status-icon::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 6px;
+            height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--cyber-blue); }
+            25% { text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--cyber-blue); }
+            50% { text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--cyber-blue); }
+            75% { text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--cyber-blue); }
+            100% { text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--cyber-blue); }
+        }
+
+        .fade-in-element {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-in-element.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-animation > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .stagger-animation > *.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header-container > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .stats-container > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .grid-container > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .section > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        footer {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .cli-container {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.5s ease;
+        }
+
+        .loading-content {
+            transition: opacity 0.5s ease;
+        }
+
+        #os-info {
+            cursor: help;
+            position: relative;
+        }
+
+        #os-info:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.9);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            z-index: 1000;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 768px) {
+            #os-info:hover::after {
+                font-size: 0.7em;
+                max-width: 200px;
             }
         }
     </style>
 </head>
 
 <body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-header">
+                <h1>SYSTEM INITIALIZATION</h1>
+            </div>
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="loading-status">正在初始化系统组件...</div>
+            </div>
+            <div class="loading-details">
+                <div class="detail-item" data-status="pending">
+                    <span class="status-icon"></span>
+                    <span class="status-text">加载核心组件</span>
+                </div>
+                <div class="detail-item" data-status="pending">
+                    <span class="status-icon"></span>
+                    <span class="status-text">初始化界面模块</span>
+                </div>
+                <div class="detail-item" data-status="pending">
+                    <span class="status-icon"></span>
+                    <span class="status-text">配置系统参数</span>
+                </div>
+                <div class="detail-item" data-status="pending">
+                    <span class="status-icon"></span>
+                    <span class="status-text">启动主程序</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <canvas id="matrix-rain"></canvas>
 
     <div class="container">
@@ -365,6 +673,11 @@
             <div class="stat-item">
                 <div>Uptime</div>
                 <div id="uptime">00:00:00</div>
+                <div class="progress-bar"></div>
+            </div>
+            <div class="stat-item">
+                <div>OS</div>
+                <div id="os-info"><i class=""></i> --</div>
                 <div class="progress-bar"></div>
             </div>
         </div>
@@ -420,7 +733,6 @@
     </footer>
 
     <script>
-        // Matrix Rain Effect
         function initMatrixRain() {
             const canvas = document.getElementById('matrix-rain');
             const ctx = canvas.getContext('2d');
@@ -458,8 +770,41 @@
             setInterval(draw, 33);
         }
 
-        // System Stats
+        function getSystemInfo() {
+            const ua = navigator.userAgent.toLowerCase();
+            let os = "Unknown OS";
+            let osIcon = "fas fa-question";
+            let fullUA = navigator.userAgent;
+
+            if (/iphone|ipad|ipod/.test(ua)) {
+                os = "iOS";
+                osIcon = "fab fa-apple";
+            } else if (/android/.test(ua)) {
+                os = "Android";
+                osIcon = "fab fa-android";
+            }
+
+            else if (/win/.test(ua)) {
+                os = "Windows";
+                osIcon = "fab fa-windows";
+            } else if (/macintosh|mac os x/.test(ua) && !(/iphone|ipad|ipod/.test(ua))) {
+                os = "macOS";
+                osIcon = "fab fa-apple";
+            } else if (/linux/.test(ua) && !(/android/.test(ua))) {
+                os = "Linux";
+                osIcon = "fab fa-linux";
+            }
+
+            return { 
+                os, 
+                osIcon,
+                ua: fullUA
+            };
+        }
+
         function updateSystemStats() {
+            const { os, osIcon, ua } = getSystemInfo();
+            
             setInterval(() => {
                 document.getElementById('cpu-usage').textContent = 
                     `${Math.floor(Math.random() * 30 + 10)}%`;
@@ -469,20 +814,216 @@
                 const now = new Date();
                 document.getElementById('uptime').textContent = 
                     `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+                
+                const osInfo = document.getElementById('os-info');
+                osInfo.innerHTML = `<i class="${osIcon}"></i> ${os}`;
+                osInfo.title = ua;
             }, 1000);
         }
 
-        // CLI
+        const translations = {
+            zh: {
+                initialization: "系统初始化",
+                loadingCore: "正在加载核心组件...",
+                initInterface: "初始化界面模块...",
+                configSystem: "配置系统参数...",
+                startProgram: "启动主程序...",
+                loadingStatus: "正在初始化系统组件...",
+                help: "可用命令：\nhelp - 显示帮助\nprojects - 显示项目列表\ncontact - 显示联系方式\nclear - 清空终端\nstats - 显示系统状态",
+                projects: "正在加载项目列表...",
+                contact: "邮箱: await591@outlook.com\nGitHub: github.com/await591",
+                commandNotFound: "未找到命令："
+            },
+            en: {
+                initialization: "SYSTEM INITIALIZATION",
+                loadingCore: "Loading core components...",
+                initInterface: "Initializing interface modules...",
+                configSystem: "Configuring system parameters...",
+                startProgram: "Starting main program...",
+                loadingStatus: "Initializing system components...",
+                help: "Available commands:\nhelp - Show this help\nprojects - List projects\ncontact - Show contact info\nclear - Clear terminal\nstats - Show system stats",
+                projects: "Loading projects...",
+                contact: "Email: await591@outlook.com\nGitHub: github.com/await591",
+                commandNotFound: "Command not found: "
+            }
+        };
+
+        function getUserLanguage() {
+            const lang = navigator.language || navigator.userLanguage;
+            return lang.startsWith('zh') ? 'zh' : 'en';
+        }
+
+        const currentLang = getUserLanguage();
+        const t = translations[currentLang];
+
+        function initLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const progressFill = document.querySelector('.progress-fill');
+            const loadingStatus = document.querySelector('.loading-status');
+            const detailItems = document.querySelectorAll('.detail-item');
+            
+            document.querySelectorAll('.container, .cli-container, #matrix-rain, footer, .loading-content').forEach(el => {
+                if (el) {
+                    el.style.opacity = '0';
+                    el.style.visibility = 'hidden';
+                }
+            });
+
+            setTimeout(() => {
+                const loadingContent = document.querySelector('.loading-content');
+                if (loadingContent) {
+                    loadingContent.style.visibility = 'visible';
+                    loadingContent.style.opacity = '1';
+                }
+
+                document.querySelector('.loading-header h1').textContent = t.initialization;
+                
+                loadingStatus.textContent = t.loadingStatus;
+                
+                const loadingSteps = [
+                    { message: t.loadingCore, duration: 800 },
+                    { message: t.initInterface, duration: 900 },
+                    { message: t.configSystem, duration: 700 },
+                    { message: t.startProgram, duration: 800 }
+                ];
+
+                document.querySelectorAll('.detail-item .status-text').forEach((el, index) => {
+                    el.textContent = loadingSteps[index].message;
+                });
+
+                let currentProgress = 0;
+                let currentStep = 0;
+
+                function updateProgress(progress) {
+                    progressFill.style.width = `${progress}%`;
+                    if (progress >= 100) {
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                                document.querySelectorAll('.container, .cli-container, #matrix-rain, footer').forEach(el => {
+                                    if (el) {
+                                        el.style.visibility = 'visible';
+                                        el.style.opacity = '1';
+                                    }
+                                });
+                                initPageAnimations();
+                            }, 500);
+                        }, 300);
+                    }
+                }
+
+                function processNextStep() {
+                    if (currentStep >= loadingSteps.length) return;
+
+                    const step = loadingSteps[currentStep];
+                    loadingStatus.textContent = step.message;
+                    detailItems[currentStep].setAttribute('data-status', 'complete');
+
+                    const progressIncrement = 25;
+                    const intervalDuration = step.duration / (progressIncrement / 2);
+
+                    const interval = setInterval(() => {
+                        if (currentProgress < (currentStep + 1) * 25) {
+                            currentProgress++;
+                            updateProgress(currentProgress);
+                        } else {
+                            clearInterval(interval);
+                            currentStep++;
+                            if (currentStep < loadingSteps.length) {
+                                setTimeout(processNextStep, 300);
+                            }
+                        }
+                    }, intervalDuration);
+                }
+
+                setTimeout(processNextStep, 500);
+            }, 500);
+        }
+
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            document.querySelectorAll('.grid-item').forEach(item => {
+                item.classList.add('fade-in-element');
+                observer.observe(item);
+            });
+
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('fade-in-element');
+                observer.observe(section);
+            });
+        }
+
+        function initPageAnimations() {
+            const container = document.querySelector('.container');
+            container.classList.add('visible');
+
+            const headerElements = document.querySelectorAll('.header-container > *');
+            headerElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+
+            const statElements = document.querySelectorAll('.stats-container > *');
+            statElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 200 + (100 * index));
+            });
+
+            const gridItems = document.querySelectorAll('.grid-container > *');
+            gridItems.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 400 + (100 * index));
+            });
+
+            const sectionElements = document.querySelectorAll('.section > *');
+            sectionElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 600 + (100 * index));
+            });
+
+            const footer = document.querySelector('footer');
+            if (footer) {
+                setTimeout(() => {
+                    footer.style.visibility = 'visible';
+                    footer.style.opacity = '1';
+                    footer.style.transform = 'translateY(0)';
+                }, 800);
+            }
+
+            const cliContainer = document.querySelector('.cli-container');
+            if (cliContainer) {
+                setTimeout(() => {
+                    cliContainer.style.visibility = 'visible';
+                    cliContainer.classList.add('visible');
+                }, 1000);
+            }
+
+            initScrollAnimations();
+        }
+
         function initCLI() {
             const input = document.getElementById('cli-input');
             const output = document.getElementById('cli-output');
             const commands = {
-                help: () => `Available commands:
-help - Show this help
-projects - List projects
-contact - Show contact info
-clear - Clear terminal
-stats - Show system stats`,
+                help: () => "Available commands:\nhelp - Show this help\nprojects - List projects\ncontact - Show contact info\nclear - Clear terminal\nstats - Show system stats",
                 projects: () => "Loading projects...\n" + [
                     "SYMMETRY EP - Math Rock",
                     "Naida - Future Riddim",
@@ -495,8 +1036,8 @@ stats - Show system stats`,
                     return '';
                 },
                 stats: () => `CPU: ${document.getElementById('cpu-usage').textContent}
-MEM: ${document.getElementById('mem-usage').textContent}
-UPTIME: ${document.getElementById('uptime').textContent}`
+                              MEM: ${document.getElementById('mem-usage').textContent}
+                              UPTIME: ${document.getElementById('uptime').textContent}`
             };
 
             input.addEventListener('keypress', (e) => {
@@ -520,11 +1061,18 @@ UPTIME: ${document.getElementById('uptime').textContent}`
             }
         }
 
-        // Initialize
         window.addEventListener('load', () => {
+            const cliContainer = document.querySelector('.cli-container');
+            if (isMobileDevice() && cliContainer) {
+                cliContainer.style.display = 'none';
+            }
+
+            initLoadingScreen();
             initMatrixRain();
             updateSystemStats();
-            initCLI();
+            if (!isMobileDevice()) {
+                initCLI();
+            }
         });
 
         window.addEventListener('resize', () => {
@@ -532,6 +1080,51 @@ UPTIME: ${document.getElementById('uptime').textContent}`
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
+
+        const metaViewport = document.createElement('meta');
+        metaViewport.name = 'viewport';
+        metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        document.head.appendChild(metaViewport);
+
+        const touchStyle = document.createElement('style');
+        touchStyle.textContent = `
+            * {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+
+            .stat-item {
+                position: relative;
+                overflow: hidden;
+                padding: 15px;
+                border-radius: 5px;
+            }
+
+            .stat-item i {
+                margin-right: 8px;
+            }
+
+            #os-info {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            @media (hover: hover) {
+                .stat-item:hover {
+                    background: rgba(0, 255, 0, 0.1);
+                    transform: translateY(-2px);
+                    transition: all 0.3s ease;
+                }
+            }
+        `;
+        document.head.appendChild(touchStyle);
+
+        // Check if device is mobile
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
     </script>
 </body>
 </html>
