@@ -1,0 +1,172 @@
+---
+/**
+ * Click-burst effects.
+ *
+ * On every primary-button mousedown anywhere in the document we:
+ *   1. Spawn ~28 radial particles at the click point on a 2D canvas overlay.
+ *      Each particle has an initial velocity, drag, and a short lifetime.
+ *   2. Dispatch `await591:click-burst` with the click coords (px, in client
+ *      space) so the Three.js background scene can ripple its connection
+ *      lines around that point. (Three-bg listens for this event.)
+ *
+ * The canvas sits above the background marquee but BELOW the cursor overlay,
+ * with pointer-events disabled so it never eats real clicks.
+ */
+---
+
+<canvas id="click-fx" aria-hidden="true"></canvas>
+
+<style is:global>
+  #click-fx {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Above marquee/CRT, below cursor overlay */
+    z-index: 50;
+  }
+</style>
+
+<script>
+  (() => {
+    if (typeof window === 'undefined') return;
+    const canvas = document.getElementById('click-fx') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let cssW = window.innerWidth;
+    let cssH = window.innerHeight;
+
+    function resize() {
+      dpr  = Math.min(window.devicePixelRatio || 1, 2);
+      cssW = window.innerWidth;
+      cssH = window.innerHeight;
+      canvas.width  = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    type Particle = {
+      x: number; y: number;
+      vx: number; vy: number;
+      life: number; max: number;
+      hue: 'p' | 's';
+    };
+    const particles: Particle[] = [];
+
+    /* Spawn a burst at (x, y). Two color rings: most particles in the primary
+     * theme color, a few in the secondary for accent flicker. */
+    function spawn(x: number, y: number) {
+      const COUNT = 28;
+      for (let i = 0; i < COUNT; i++) {
+        const a = (i / COUNT) * Math.PI * 2 + Math.random() * 0.4;
+        const speed = 1.8 + Math.random() * 4.2;
+        particles.push({
+          x, y,
+          vx: Math.cos(a) * speed,
+          vy: Math.sin(a) * speed,
+          life: 0,
+          max: 32 + Math.random() * 22,
+          hue: i % 6 === 0 ? 's' : 'p',
+        });
+      }
+      // A handful of slow lingering sparks
+      for (let i = 0; i < 6; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const speed = 0.4 + Math.random() * 1.0;
+        particles.push({
+          x, y,
+          vx: Math.cos(a) * speed,
+          vy: Math.sin(a) * speed,
+          life: 0,
+          max: 70 + Math.random() * 28,
+          hue: 'p',
+        });
+      }
+    }
+
+    /* Mousedown handler. Only fires on primary button to leave context-menu
+     * + middle-click alone. */
+    document.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      spawn(e.clientX, e.clientY);
+      document.dispatchEvent(new CustomEvent('await591:click-burst', {
+        detail: { x: e.clientX, y: e.clientY }
+      }));
+    }, { capture: true });
+
+    function getColors() {
+      const root = getComputedStyle(document.documentElement);
+      return {
+        p: root.getPropertyValue('--primary').trim() || '#33ff00',
+        s: root.getPropertyValue('--secondary').trim() || '#ffb000',
+      };
+    }
+    let colors = getColors();
+    document.addEventListener('await591:theme-change', () => { colors = getColors(); });
+
+    /* `clearedFrames` counts empty frames since the last particle died.
+     * Once we've fully scrubbed the canvas we stop the fade pass entirely
+     * (saves a fillRect at idle) and force a final clearRect to guarantee
+     * no stale pixels survive from DPR rounding. Fade alpha was bumped
+     * from 0.18 → 0.34 — the previous setting combined with `lighter`
+     * composite let dense burst pixels accumulate alpha faster than the
+     * fade could erase, which left long-term residue in clicked areas. */
+    let clearedFrames = 0;
+
+    function frame() {
+      const hasParticles = particles.length > 0;
+
+      if (hasParticles || clearedFrames < 14) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,0.34)';
+        ctx.fillRect(0, 0, cssW, cssH);
+        ctx.globalCompositeOperation = 'lighter';
+      }
+
+      if (hasParticles) {
+        clearedFrames = 0;
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.life++;
+          if (p.life >= p.max) {
+            particles.splice(i, 1);
+            continue;
+          }
+          // Drag + slight gravity so particles arc downward as they slow.
+          p.vx *= 0.94;
+          p.vy = p.vy * 0.94 + 0.04;
+          p.x += p.vx;
+          p.y += p.vy;
+
+          const t = p.life / p.max;
+          const alpha = (1 - t) * (1 - t); // ease-out quad
+          ctx.fillStyle = p.hue === 's' ? colors.s : colors.p;
+          ctx.globalAlpha = alpha;
+          const r = (1 - t) * 2.6 + 0.4;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        clearedFrames++;
+        // Final hard clear once fade has scrubbed the canvas — guarantees
+        // no stale pixels from rounding errors / DPR mismatches.
+        if (clearedFrames === 14) {
+          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.clearRect(0, 0, cssW, cssH);
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>

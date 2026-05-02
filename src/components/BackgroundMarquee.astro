@@ -1,0 +1,153 @@
+---
+/**
+ * 2.5D scrolling marquee that sits behind all foreground content.
+ *
+ * Five rows, alternating direction and style:
+ *   - odd rows (1, 3, 5):  filled text, scroll left → right
+ *   - even rows (2, 4):    outline-only with a stacked text-shadow extrusion,
+ *                          scroll right → left
+ *
+ * Track content is the same string repeated; the track itself is duplicated
+ * so a -50% translate lands exactly on the start frame and the loop seams.
+ */
+const PHRASE = '- AWAIT591 · MUSIC PRODUCER · DEVLOPER · LBD RECORDS -';
+
+// Duplicate enough copies that even on ultra-wide displays the track is
+// always wider than 200% of the viewport.
+const COPIES = 6;
+const line   = Array.from({ length: COPIES }, () => PHRASE).join('   ');
+
+/* Per-row config: `dir` controls the keyframe direction, `dur` the speed. */
+const ROWS = [
+  { dir: 'rtl', dur: 64, kind: 'fill',    top:  '8%' },
+  { dir: 'ltr', dur: 88, kind: 'outline', top: '24%' },
+  { dir: 'rtl', dur: 72, kind: 'fill',    top: '44%' },
+  { dir: 'ltr', dur: 96, kind: 'outline', top: '64%' },
+  { dir: 'rtl', dur: 80, kind: 'fill',    top: '82%' },
+];
+---
+
+<div class="bg-marquee" aria-hidden="true">
+  {ROWS.map((row, i) => (
+    <div
+      class:list={[
+        'bg-marquee-row',
+        i % 2 === 0 ? 'bg-marquee-row--odd' : 'bg-marquee-row--even',
+        `bg-marquee-row--${row.kind}`,
+        `bg-marquee-row--${row.dir}`,
+      ]}
+      style={`top: ${row.top}; --bg-marquee-dur: ${row.dur}s;`}
+    >
+      <div class="bg-marquee-track">
+        <span class="bg-marquee-text">{line}</span>
+        <span class="bg-marquee-text" aria-hidden="true">{line}</span>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  /* Layer between the WebGL canvas (#scene at z=0/-1) and foreground content.
+     pointer-events: none so it never eats clicks. */
+  .bg-marquee {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    /* Soft fade at top/bottom so the rows don't have hard edges */
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      black 14%,
+      black 86%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      black 14%,
+      black 86%,
+      transparent 100%
+    );
+  }
+
+  .bg-marquee-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    /* Subtle background presence — bright enough to read 2.5D, low enough
+       not to compete with the foreground panes. */
+    opacity: 0.085;
+    will-change: transform;
+  }
+
+  .bg-marquee-track {
+    display: inline-flex;
+    gap: 4ch;
+    animation-duration: var(--bg-marquee-dur, 60s);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+
+  .bg-marquee-row--ltr .bg-marquee-track { animation-name: bg-marquee-ltr; }
+  .bg-marquee-row--rtl .bg-marquee-track { animation-name: bg-marquee-rtl; }
+
+  @keyframes bg-marquee-ltr {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0%); }
+  }
+  @keyframes bg-marquee-rtl {
+    from { transform: translateX(0%); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .bg-marquee-text {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 800;
+    font-size: clamp(60px, 8vw, 120px);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-transform: uppercase;
+    flex: 0 0 auto;
+  }
+
+  /* Filled rows: solid primary fill with a soft drop-shadow that gives
+     the letters a faint extrusion behind. */
+  .bg-marquee-row--fill .bg-marquee-text {
+    color: var(--primary);
+    text-shadow:
+      1px 1px 0 rgba(0, 0, 0, 0.7),
+      2px 2px 0 rgba(0, 0, 0, 0.5),
+      3px 3px 0 rgba(0, 0, 0, 0.3),
+      4px 4px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Outline rows: hollow letterforms with a stacked text-shadow stair-step
+     to fake 3D edge depth. We use -webkit-text-stroke for the outline; the
+     stack of solid offsets reads as the extruded side faces. */
+  .bg-marquee-row--outline .bg-marquee-text {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--primary);
+    text-shadow:
+      1px  1px 0 var(--muted),
+      2px  2px 0 var(--muted),
+      3px  3px 0 var(--muted),
+      4px  4px 0 var(--muted),
+      5px  5px 0 var(--muted),
+      6px  6px 0 var(--muted),
+      7px  7px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Pause the animation when the user has motion disabled */
+  :global(html.motion-off) .bg-marquee-track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bg-marquee-track { animation: none; }
+  }
+</style>

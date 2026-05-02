@@ -1,0 +1,30 @@
+---
+---
+
+<aside class="floating-terminal" id="terminal-window">
+  <div class="pane-titlebar">
+    <span class="pane-title">+--- interactive shell ---+</span>
+    <button
+      class="status-chip"
+      id="terminal-close"
+      aria-label="close terminal"
+      style="cursor:pointer;"
+    >[ x ]</button>
+  </div>
+  <div class="pane-body terminal-shell">
+    <div class="terminal-output" id="terminal-output" aria-live="polite">
+      <p>&gt; help</p>
+      <p>available commands: help, about, skills, projects, contact, clear</p>
+    </div>
+    <label class="terminal-input-row" for="terminal-input">
+      <span class="terminal-prompt">await591@signal:~$</span>
+      <input
+        class="terminal-input"
+        id="terminal-input"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="type a command"
+      />
+    </label>
+  </div>
+</aside>

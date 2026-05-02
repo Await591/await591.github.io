@@ -1,0 +1,31 @@
+---
+import { externalLinks } from '../data/links.js';
+---
+
+<section class="section" id="links" aria-labelledby="links-title">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-label">links / contact</p>
+      <h2 class="section-title" id="links-title">EXTERNAL ENDPOINTS</h2>
+    </div>
+  </div>
+
+  <div class="links-grid">
+    <article class="pane contact-card reveal">
+      <div class="pane-titlebar">
+        <span class="pane-title">+--- endpoints ---+</span>
+        <span class="status-chip">[ public ]</span>
+      </div>
+      <div class="pane-body link-list">
+        {externalLinks.map((link) => (
+          <div class="link-item">
+            <span class="link-key">{link.key}</span>
+            <a href={link.href} target={link.href.startsWith('mailto') ? undefined : '_blank'} rel="noreferrer">
+              {link.label}
+            </a>
+          </div>
+        ))}
+      </div>
+    </article>
+  </div>
+</section>

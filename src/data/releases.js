@@ -1,0 +1,38 @@
+export const releases = [
+  {
+    id: '01',
+    date: '2025-01-01',
+    genre: 'math rock',
+    title: 'SYMMETRY EP',
+    copy: 'Depict / Expunge / Relinquish. Released on Symmetrical Music.',
+    cover: '/assets/SYMMETRY_EP.jpg',
+    link: 'https://open.spotify.com/album/7LdvVyhTOP0QwtiIE8Mt7I',
+  },
+  {
+    id: '02',
+    date: '2022-09-16',
+    genre: 'future riddim',
+    title: 'Naida',
+    copy: 'printf("LBD Records, LostTrackVol.3"); return 0; Windwan & Await591.',
+    cover: '/assets/Lost%20Track%20Vol.3.jpg',
+    link: 'https://open.spotify.com/track/0wE78XeVwZ3dWJlAhcMdDj',
+  },
+  {
+    id: '03',
+    date: '2023-08-20',
+    genre: 'ambient',
+    title: 'Surge',
+    copy: 'August 25th–26th, 2023. Sounds from the sea 0x2f1a822db3.',
+    cover: '/assets/Surge.jpg',
+    link: 'https://open.spotify.com/album/2hfjvVSgNzTYAbFlMkVqKT',
+  },
+  {
+    id: '04',
+    date: '2022-11-11',
+    genre: 'melbourne bounce',
+    title: 'In The Back VIP',
+    copy: 'Carnival + UK Hardcore + Melbourne Bounce + Hybrid Trap. JocularACE & Await591.',
+    cover: '/assets/In%20The%20Back%20(VIP%20Extended%20Mix).jpg',
+    link: 'https://open.spotify.com/track/0u4QJqXx55XX9UViQs1ZVt',
+  },
+];

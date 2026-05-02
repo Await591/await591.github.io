@@ -1,0 +1,30 @@
+---
+import { releases } from '../data/releases.js';
+
+// Duplicate for seamless infinite loop: translateX(-50%) lands exactly at start
+const doubled = [...releases, ...releases];
+---
+
+<div class="marquee-outer" aria-hidden="true">
+  <div class="marquee-track">
+    {doubled.map((rel) => (
+      <a
+        class="marquee-item"
+        href={rel.link}
+        target="_blank"
+        rel="noreferrer"
+        tabindex="-1"
+      >
+        <div
+          class="marquee-cover-thumb"
+          style={`background-image: url('${rel.cover}');`}
+        ></div>
+        <div class="marquee-info">
+          <span class="marquee-title">{rel.title}</span>
+          <span class="marquee-genre">{rel.genre}</span>
+          <span class="marquee-date">{rel.date}</span>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>

@@ -1,0 +1,74 @@
+---
+const navLinks = [
+  { href: '#capabilities', label: 'capabilities' },
+  { href: '#releases',     label: 'releases' },
+  { href: '#links',        label: 'links' },
+];
+---
+
+<header class="topbar" id="topbar">
+  <nav class="nav-shell" aria-label="Primary">
+    <a class="brand" href="#top">
+      <span class="glitch" data-text="await591@signal:~$">await591@signal:~$</span>
+      <span class="brand-cursor" aria-hidden="true"></span>
+    </a>
+
+    <button
+      id="nav-toggle"
+      class="nav-toggle"
+      type="button"
+      aria-label="toggle navigation"
+      aria-controls="nav-links"
+      aria-expanded="false"
+    >
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+    </button>
+
+    <div class="nav-links" id="nav-links" data-collapsed="true">
+      {navLinks.map((link) => (
+        <a href={link.href}>{link.label}</a>
+      ))}
+      <a href="#" id="open-terminal-link">terminal</a>
+    </div>
+  </nav>
+</header>
+
+<script>
+  /* Hamburger toggle: rotates the icon 90° and reveals the link list as a
+   * dropdown beneath it. Closing happens on outside-click, on Esc, or on
+   * any link click (so picking 'terminal' doesn't leave the menu open). */
+  (() => {
+    const toggle = document.getElementById('nav-toggle');
+    const links  = document.getElementById('nav-links');
+    if (!toggle || !links) return;
+
+    function setOpen(open: boolean) {
+      links!.setAttribute('data-collapsed', open ? 'false' : 'true');
+      toggle!.setAttribute('aria-expanded', String(open));
+      toggle!.classList.toggle('is-open', open);
+    }
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = links.getAttribute('data-collapsed') === 'true';
+      setOpen(open);
+    });
+
+    /* Close on link activation so the menu doesn't linger on top of the
+     * section the user just jumped to. */
+    links.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => setOpen(false));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!toggle.contains(e.target as Node) && !links.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+  })();
+</script>

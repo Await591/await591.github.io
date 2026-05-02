@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BootOverlay from '../components/BootOverlay.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Stats from '../components/Stats.astro';
+import Capabilities from '../components/Capabilities.astro';
+import Releases from '../components/Releases.astro';
+import Links from '../components/Links.astro';
+import Footer from '../components/Footer.astro';
+import FloatingTerminal from '../components/FloatingTerminal.astro';
+import TweaksPanel from '../components/TweaksPanel.astro';
+import { CinemaStage }  from '../components/CinemaStage.tsx';
+import { ScrollStory }  from '../components/ScrollStory.tsx';
+---
+
+<Layout>
+  <BootOverlay />
+
+  <div class="site-shell">
+    <Nav />
+
+    <main id="top">
+      <Hero />
+      <Stats />
+      <Capabilities />
+
+      <CinemaStage client:visible />
+      <ScrollStory client:visible />
+
+      <Releases />
+      <Links />
+    </main>
+
+    <Footer />
+  </div>
+
+  <FloatingTerminal />
+  <TweaksPanel />
+</Layout>
+
+<script>
+  import '../scripts/main.js';
+</script>

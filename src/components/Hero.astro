@@ -1,0 +1,141 @@
+---
+const tags = ['ableton live', 'fl studio', 'node.js', 'python', 'verilog', 'docker', 'vivado'];
+
+/* Static decorative process list — sequential hex PIDs read like a real ps table */
+const processes = [
+  { pid: '0x1001', name: 'audio-engine',   load: 6, st: 'run' },
+  { pid: '0x1002', name: 'render-thread',  load: 4, st: 'run' },
+  { pid: '0x1003', name: 'midi-bridge',    load: 2, st: 'idle' },
+  { pid: '0x1004', name: 'shader-compile', load: 7, st: 'run' },
+  { pid: '0x1005', name: 'log-collector',  load: 1, st: 'idle' },
+];
+---
+
+<section class="hero">
+  <div class="hero-grid">
+
+    <!-- ── LEFT: profile / live ─────────────────────────────────────── -->
+    <article class="pane cinema-frame hero-stage reveal" data-cinema>
+      <div class="pane-titlebar">
+        <span class="pane-title">+--- profile / live ---+</span>
+        <span class="status-chip">[ online ]</span>
+      </div>
+      <div class="pane-body">
+        <p class="hero-command">
+          await591@signal:~$ <span id="type-target"></span><span class="brand-cursor" aria-hidden="true"></span>
+        </p>
+        <h1 class="hero-title glitch" data-text="AWAIT591">AWAIT591</h1>
+        <p class="hero-subtitle">music producer // n00b developer // embedded system design // machine learning</p>
+
+        <div class="hero-tags">
+          {tags.map((tag) => (
+            <span class="terminal-tag">{tag}</span>
+          ))}
+        </div>
+
+        <div class="hero-actions">
+          <a class="terminal-button" href="https://github.com/Await591" target="_blank" rel="noreferrer">
+            [ open github ]
+          </a>
+          <a class="terminal-button terminal-button--warn" href="https://linktr.ee/await591" target="_blank" rel="noreferrer">
+            [ open linktree ]
+          </a>
+          <a class="terminal-button terminal-button--ghost" href="#" id="hero-terminal-link">
+            [ run commands ]
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── RIGHT: os-detect + processes + animated handshake ────────── -->
+    <div class="hero-grid-right">
+
+      <!-- os / detect — replaces redundant runtime/telemetry pane -->
+      <article class="pane reveal">
+        <div class="pane-titlebar">
+          <span class="pane-title">+--- os / detect ---+</span>
+          <span class="status-chip" id="os-detect-chip">[ scanning ]</span>
+        </div>
+        <div class="pane-body os-detect-body">
+          <p class="os-detect-eyebrow">$ uname -a &nbsp;|&nbsp; matching client signature</p>
+          <ul class="os-detect-grid" id="os-detect-grid">
+            <li class="os-tile" data-os="windows">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.351"/></svg>
+              <span class="os-tile-name">windows</span>
+            </li>
+            <li class="os-tile" data-os="macos">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M22.06 17.205c-.39.875-.575 1.265-1.077 2.04-.703 1.083-1.687 2.43-2.91 2.443-1.085.012-1.365-.704-2.84-.696-1.473.006-1.78.71-2.866.696-1.222-.013-2.156-1.232-2.86-2.314-1.965-3.034-2.17-6.59-.96-8.482.86-1.342 2.218-2.13 3.49-2.13 1.298 0 2.114.704 3.18.704 1.04 0 1.67-.71 3.17-.71 1.137 0 2.34.62 3.2 1.69-2.81 1.54-2.355 5.55.48 6.76zM16.51 4.7c.546-.7.96-1.692.81-2.7-.89.06-1.93.625-2.54 1.36-.553.66-1.01 1.658-.83 2.629.97.03 1.973-.55 2.56-1.288z"/></svg>
+              <span class="os-tile-name">macos</span>
+            </li>
+            <li class="os-tile" data-os="linux">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.504 0c-.155 0-.315.008-.48.021c-4.226.333-3.105 4.807-3.17 6.298c-.076 1.092-.3 1.953-1.05 3.02c-.885 1.051-2.127 2.75-2.716 4.521c-.278.832-.41 1.684-.287 2.489a.985.985 0 0 0-.045.196c-.108.857-.353 1.482-.776 2.084c-.42.605-.844 1.034-1.39 1.69c-.272.328-.42.694-.43 1.05c-.011.354.097.69.244.999c.292.598.751 1.105 1.029 1.578c.328.62.27 1.085.46 1.524c.193.44.679.696 1.292.829c1.226.262 2.92.046 4.219.643c1.392.626 2.812.886 3.978.469c.835-.292 1.493-.93 1.798-1.91c.402-.005 1.291-.005 1.798-.005c.401 0 .888-.183 1.207-.539c.32-.355.405-.835.405-1.305c0-.45-.115-.882-.336-1.249c-.221-.366-.524-.674-.829-.94c-.61-.534-.97-.901-1.207-1.255c-.24-.354-.394-.69-.42-1.196c-.024-.502.21-1.078.46-1.69c.232-.566.467-1.112.467-1.78c.002-.671-.232-1.453-.71-2.273c-.57-1.077-1.288-2.123-2.166-2.997c-.96-.953-1.18-2.108-1.262-3.215c-.101-1.107-.018-2.143-.018-3.111C16.547 1.04 14.918 0 12.504 0z"/></svg>
+              <span class="os-tile-name">linux</span>
+            </li>
+            <li class="os-tile" data-os="ios">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M22.06 17.205c-.39.875-.575 1.265-1.077 2.04-.703 1.083-1.687 2.43-2.91 2.443-1.085.012-1.365-.704-2.84-.696-1.473.006-1.78.71-2.866.696-1.222-.013-2.156-1.232-2.86-2.314-1.965-3.034-2.17-6.59-.96-8.482.86-1.342 2.218-2.13 3.49-2.13 1.298 0 2.114.704 3.18.704 1.04 0 1.67-.71 3.17-.71 1.137 0 2.34.62 3.2 1.69-2.81 1.54-2.355 5.55.48 6.76zM16.51 4.7c.546-.7.96-1.692.81-2.7-.89.06-1.93.625-2.54 1.36-.553.66-1.01 1.658-.83 2.629.97.03 1.973-.55 2.56-1.288z"/></svg>
+              <span class="os-tile-name">ios</span>
+            </li>
+            <li class="os-tile" data-os="android">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.523 15.34c-.621 0-1.125-.504-1.125-1.125s.504-1.125 1.125-1.125 1.125.504 1.125 1.125-.504 1.125-1.125 1.125m-11.046 0c-.621 0-1.125-.504-1.125-1.125s.504-1.125 1.125-1.125 1.125.504 1.125 1.125-.504 1.125-1.125 1.125m11.45-6.02l2.244-3.886a.467.467 0 00-.81-.467l-2.27 3.93a14.13 14.13 0 00-11.785 0L3.04 4.967a.467.467 0 00-.81.467l2.245 3.886C.66 11.39-.97 14.708.477 18.74h23.046c1.447-4.032-.183-7.35-4.596-9.42"/></svg>
+              <span class="os-tile-name">android</span>
+            </li>
+          </ul>
+          <p class="os-detect-status">
+            <span class="os-detect-key">match</span>
+            <span class="os-detect-val" id="os-detect-name">··············</span>
+          </p>
+          <p class="os-detect-status">
+            <span class="os-detect-key">utc</span>
+            <span class="os-detect-val" id="sys-time">--:--:--</span>
+          </p>
+          <span id="sys-user-agent" class="visually-hidden" aria-hidden="true"></span>
+          <span id="sys-platform" class="visually-hidden" aria-hidden="true"></span>
+          <span id="sys-session" class="visually-hidden" aria-hidden="true"></span>
+        </div>
+      </article>
+
+      <!-- proc / table -->
+      <article class="pane reveal">
+        <div class="pane-titlebar">
+          <span class="pane-title">+--- proc / table ---+</span>
+          <span class="status-chip">[ {processes.length} pids ]</span>
+        </div>
+        <div class="pane-body">
+          <div class="proc-head">
+            <span>pid</span>
+            <span>process</span>
+            <span>cpu</span>
+            <span>st</span>
+          </div>
+          <ul class="proc-list">
+            {processes.map((p) => (
+              <li class="proc-row" data-status={p.st}>
+                <span class="proc-pid">{p.pid}</span>
+                <span class="proc-name">{p.name}</span>
+                <span class="proc-bar">[{'|'.repeat(p.load)}{'.'.repeat(10 - p.load)}]</span>
+                <span class="proc-st">{p.st}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+
+      <!-- net / handshake (animated) -->
+      <article class="pane reveal">
+        <div class="pane-titlebar">
+          <span class="pane-title">+--- net / handshake ---+</span>
+          <span class="status-chip">[ rx/tx ]</span>
+        </div>
+        <div class="pane-body net-handshake-body">
+          <canvas id="net-handshake-canvas" class="net-handshake-canvas" aria-hidden="true"></canvas>
+          <div class="net-handshake-meta">
+            <span class="net-handshake-label">signal</span>
+            <span class="net-handshake-bar"><span class="net-handshake-bar-fill"></span></span>
+            <span class="net-handshake-rate">44.1khz</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>

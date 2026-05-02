@@ -1,0 +1,41 @@
+---
+const meters = [
+  { id: 'cpu',    title: 'cpu',       label: 'load',    note: 'simulated', chip: '00%',      hasId: true  },
+  { id: 'mem',    title: 'memory',    label: 'usage',   note: 'simulated', chip: '00%',      hasId: true  },
+  { id: 'uptime', title: 'uptime',    label: 'session', note: 'local',     chip: '00:00:00', hasId: true  },
+  { id: 'health', title: 'stability', label: 'health',  note: 'nominal',   chip: '[ ok ]',   hasId: false },
+];
+---
+
+<section class="section" aria-labelledby="stats-title">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-label">system metrics</p>
+      <h2 class="section-title" id="stats-title">LIVE SIGNALS</h2>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    {meters.map((m) => (
+      <article class="pane reveal">
+        <div class="pane-titlebar">
+          <span class="pane-title">{m.title}</span>
+          {m.hasId
+            ? <span class="status-chip" id={`${m.id}-value`}>{m.chip}</span>
+            : <span class="status-chip">{m.chip}</span>
+          }
+        </div>
+        <div class="pane-body meter">
+          <div class="meter-label">
+            <span>{m.label}</span>
+            <span>{m.note}</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id={`${m.id}-fill`}></div>
+          </div>
+          <div class="meter-ascii" id={`${m.id}-ascii`}>[..........]</div>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>

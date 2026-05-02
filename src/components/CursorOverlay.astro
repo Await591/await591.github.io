@@ -1,0 +1,353 @@
+---
+/**
+ * Custom cursor overlay.
+ *
+ * Three layers stacked:
+ *   1. #cursor-trail   — pool of small DOM dots positioned at recent cursor
+ *      samples. Each dot fades out over TRAIL_LIFETIME_MS, so the residue
+ *      is time-limited and pixel-accurate to the cursor body (no canvas DPR
+ *      mismatch).
+ *   2. #cursor-main    — the live cursor body. Three RGB-split layers
+ *      offset on each frame for the glitch read.
+ *   3. #cursor-glow    — soft outer halo, larger and edge-only.
+ *
+ * The native cursor is hidden by global CSS; text inputs override it back so
+ * typing still feels normal.
+ */
+---
+
+<div id="cursor-root" class="is-hidden" aria-hidden="true">
+  <div id="cursor-trail"></div>
+  <div id="cursor-glow"></div>
+  <div id="cursor-main">
+    <span class="cursor-layer cursor-layer--r"></span>
+    <span class="cursor-layer cursor-layer--g"></span>
+    <span class="cursor-layer cursor-layer--b"></span>
+    <span class="cursor-layer cursor-layer--core"></span>
+  </div>
+</div>
+
+<style is:global>
+  /* Hide the native cursor everywhere; text fields keep theirs so typing
+     reads correctly. Coarse-pointer (touch) devices keep their native cursor
+     because we never animate one in. */
+  @media (pointer: fine) {
+    html, body { cursor: none; }
+    a, button, [role='button'], .terminal-button, .tweaks-toggle,
+    .tweaks-option, .nav-links a { cursor: none; }
+    input, textarea, [contenteditable='true'] { cursor: text; }
+  }
+
+  /* The whole overlay is non-interactive. */
+  #cursor-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 220ms ease;
+  }
+  /* Hide the overlay (with fade) when the pointer leaves the window or the
+     window loses focus, instead of letting it teleport to top-left. */
+  #cursor-root.is-hidden { opacity: 0; }
+
+  /* Trail container — a fixed-position layer that holds a pool of small
+     dot elements positioned via transform. Using DOM transforms instead
+     of a canvas avoids DPR/transform mismatches that previously made the
+     trail drift further from the cursor body the closer it got to the
+     right edge of the viewport. */
+  #cursor-trail {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    contain: layout style;
+  }
+  .cursor-trail-dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 4px var(--primary);
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+
+  /* Outer glow halo — sits behind the cursor body. */
+  #cursor-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transform: translate3d(-1000px, -1000px, 0) translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--primary) 38%, transparent) 0%,
+      color-mix(in srgb, var(--primary) 12%, transparent) 38%,
+      transparent 72%
+    );
+    filter: blur(2px);
+    will-change: transform;
+  }
+
+  /* Main cursor body — a small square that we squash/stretch with velocity. */
+  #cursor-main {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    transform: translate3d(-1000px, -1000px, 0) translate(-50%, -50%);
+    will-change: transform;
+  }
+
+  .cursor-layer {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--primary);
+    box-sizing: border-box;
+    mix-blend-mode: screen;
+  }
+  .cursor-layer--r    { border-color: #ff2a55; }
+  .cursor-layer--g    { border-color: #33ff8a; }
+  .cursor-layer--b    { border-color: #2af0ff; }
+  .cursor-layer--core {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    mix-blend-mode: normal;
+  }
+
+  /* Hover-grow state: applied via JS when the cursor enters interactive nodes */
+  #cursor-root.is-hot #cursor-main { transform: translate3d(var(--cx,-1000px), var(--cy,-1000px), 0) translate(-50%,-50%) scale(1.6); }
+  #cursor-root.is-hot #cursor-glow { transform: translate3d(var(--cx,-1000px), var(--cy,-1000px), 0) translate(-50%,-50%) scale(1.5); }
+
+  /* Honor reduced-motion: no trail, no glitch — just a static dot. */
+  @media (prefers-reduced-motion: reduce) {
+    #cursor-trail { display: none; }
+    .cursor-layer--r,
+    .cursor-layer--g,
+    .cursor-layer--b { display: none; }
+  }
+</style>
+
+<script>
+  /* Custom cursor driver. Self-contained, no imports. Hooks up on first
+   * mousemove so we don't draw a stale cursor on page load. */
+  (() => {
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    const root   = document.getElementById('cursor-root');
+    const main   = document.getElementById('cursor-main');
+    const glow   = document.getElementById('cursor-glow');
+    const trail  = document.getElementById('cursor-trail');
+    if (!root || !main || !glow || !trail) return;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* DOM-based trail dot pool. Using a fixed pool of div elements
+     * positioned via translate3d avoids the canvas DPR/transform mismatch
+     * that previously caused the trail to drift further from the cursor
+     * the closer it got to the right edge of the viewport. Each dot is
+     * positioned in the same CSS-pixel viewport coordinate space as the
+     * cursor body, so they always align perfectly. */
+    const TRAIL_POOL_SIZE = 22;
+    const trailDots: HTMLDivElement[] = [];
+    for (let i = 0; i < TRAIL_POOL_SIZE; i++) {
+      const d = document.createElement('div');
+      d.className = 'cursor-trail-dot';
+      d.style.opacity = '0';
+      trail.appendChild(d);
+      trailDots.push(d);
+    }
+
+    // Live mouse position (raw) and rendered cursor position (eased).
+    const target  = { x: -1000, y: -1000 };
+    const display = { x: -1000, y: -1000 };
+    let lastX = -1000, lastY = -1000;
+    let vx = 0, vy = 0;
+    let primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#33ff00';
+
+    /* Visibility — hide (fade) when the pointer leaves the window or the
+     * tab loses focus. The first mousemove after returning snaps display
+     * to the new mouse position so we never see an arrival arc / left-side
+     * trail leaking out of the viewport. */
+    let visible = false;
+    let hasSeenMouse = false;
+    function setVisible(v: boolean) {
+      if (v === visible) return;
+      visible = v;
+      root.classList.toggle('is-hidden', !v);
+    }
+
+    /* Trail history buffer (declared early so mousemove can reset it). Each
+     * entry is a timestamped sample of the display position; segment alpha
+     * decays with age in the render pass, so stationary cursors fade fully
+     * (no permanent residue) and the trail always points along the direction
+     * of motion. */
+    type Sample = { x: number; y: number; t: number };
+    const history: Sample[] = [];
+    const TRAIL_LIFETIME_MS = 380;
+
+    /* Eased glitch parameters — these lerp toward velocity-derived targets
+     * with a small `k` so the RGB-split builds up over a few hundred ms
+     * when the cursor accelerates and lingers for a similar time after the
+     * cursor stops. Without easing the glitch snapped on/off in one frame. */
+    let splitMagEased = 0;
+    let splitAngleEased = 0;
+
+    document.addEventListener('await591:theme-change', () => {
+      primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#33ff00';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!hasSeenMouse) {
+        // First move: snap display + history origin to the cursor so we
+        // don't draw a long line in from (-1000, -1000).
+        display.x = e.clientX; display.y = e.clientY;
+        lastX = display.x;     lastY = display.y;
+        history.length = 0;
+        hasSeenMouse = true;
+      }
+      target.x = e.clientX;
+      target.y = e.clientY;
+      setVisible(true);
+    }, { passive: true });
+
+    /* Hide on real "left the window" events. `mouseleave` on the root
+     * element fires once per actual document exit (not per inner element
+     * transition like `mouseout`). */
+    document.documentElement.addEventListener('mouseleave', () => setVisible(false));
+    window.addEventListener('blur', () => setVisible(false));
+    window.addEventListener('focus', () => {
+      // Keep hidden until the next real mousemove — avoids a teleport flash.
+      hasSeenMouse = false;
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) setVisible(false);
+    });
+
+    /* Hover state: grow + recolor when hovering interactive nodes. */
+    const HOT_SELECTOR = 'a, button, [role="button"], .terminal-button, .tweaks-option, .tweaks-toggle, .os-tile, .release-card, .marquee-item';
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest && target.closest(HOT_SELECTOR)) {
+        root.classList.add('is-hot');
+      }
+    });
+    document.addEventListener('mouseout', (e) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest && target.closest(HOT_SELECTOR)) {
+        root.classList.remove('is-hot');
+      }
+    });
+
+    /* Frame loop. Eases display toward target — 'montage' easing means we
+     * use velocity-aware speed so quick flicks catch up faster than the
+     * default lerp would. */
+    function frame() {
+      // Ease display position. Higher base + velocity boost = snappier flicks.
+      const dx = target.x - display.x;
+      const dy = target.y - display.y;
+      const speed = Math.hypot(dx, dy);
+      const k = Math.min(0.45, 0.18 + speed * 0.0015);
+      display.x += dx * k;
+      display.y += dy * k;
+
+      // Velocity (px/frame) for stretch + trail intensity.
+      vx = display.x - lastX;
+      vy = display.y - lastY;
+      lastX = display.x;
+      lastY = display.y;
+      const vmag = Math.hypot(vx, vy);
+
+      /* Glitch: ease the RGB-split magnitude AND its angle so the effect
+       * builds and decays over ~400ms rather than snapping on/off each
+       * frame. Asymmetric rates: rises a bit faster than it decays so a
+       * quick flick still produces a visible split, but you also get a
+       * trailing afterimage when you stop. */
+      const splitTarget = Math.min(7, vmag * 0.42);
+      const splitK = splitTarget > splitMagEased ? 0.10 : 0.04;
+      splitMagEased += (splitTarget - splitMagEased) * splitK;
+      const targetAngle = Math.atan2(vy, vx);
+      // Smoothly turn angle toward target via shortest direction
+      let aDelta = targetAngle - splitAngleEased;
+      while (aDelta >  Math.PI) aDelta -= Math.PI * 2;
+      while (aDelta < -Math.PI) aDelta += Math.PI * 2;
+      splitAngleEased += aDelta * 0.18;
+      const splitMag = splitMagEased;
+      const angle = splitAngleEased;
+      const sx = Math.cos(angle) * splitMag;
+      const sy = Math.sin(angle) * splitMag;
+
+      // Position the body. Squash-stretch along motion direction.
+      const stretch = Math.min(1.8, 1 + vmag * 0.02);
+      const squash  = 1 / Math.sqrt(stretch);
+      const rotDeg  = (Math.atan2(vy, vx) * 180) / Math.PI;
+
+      main.style.transform =
+        `translate3d(${display.x}px, ${display.y}px, 0) ` +
+        `translate(-50%, -50%) ` +
+        `rotate(${rotDeg}deg) scale(${stretch}, ${squash})`;
+      glow.style.transform =
+        `translate3d(${display.x}px, ${display.y}px, 0) ` +
+        `translate(-50%, -50%)`;
+
+      // Update RGB-split layers
+      const layers = main.children;
+      if (layers.length >= 4) {
+        (layers[0] as HTMLElement).style.transform = `translate(${ sx}px, ${ sy}px)`;
+        (layers[1] as HTMLElement).style.transform = `translate(${-sx}px, ${-sy}px)`;
+        (layers[2] as HTMLElement).style.transform = `translate(${ sy * 0.6}px, ${-sx * 0.6}px)`;
+      }
+
+      // Pass position to CSS for hover-state transform reuse
+      root.style.setProperty('--cx', display.x + 'px');
+      root.style.setProperty('--cy', display.y + 'px');
+
+      /* Trail: push a fresh sample into the rolling history each frame
+       * (only while visible & moving), prune samples past their lifetime,
+       * then map each sample to a pool element. Pool elements that have
+       * no sample get opacity 0 so they're invisible. Because each dot
+       * lives in the same CSS-pixel viewport space as the cursor body,
+       * they align with the cursor regardless of DPR. */
+      if (!reduced) {
+        const now = performance.now();
+        if (visible && hasSeenMouse) {
+          history.push({ x: display.x, y: display.y, t: now });
+        }
+        // Prune samples older than lifetime.
+        while (history.length && now - history[0].t > TRAIL_LIFETIME_MS) {
+          history.shift();
+        }
+        // Cap to pool size — drop oldest beyond capacity.
+        while (history.length > TRAIL_POOL_SIZE) history.shift();
+
+        // Position pool elements at history samples; hide unused dots.
+        for (let i = 0; i < TRAIL_POOL_SIZE; i++) {
+          const dot = trailDots[i];
+          // Render newest at the END of the array so hi index = newest.
+          const sampleIdx = history.length - 1 - i;
+          if (sampleIdx < 0) {
+            if (dot.style.opacity !== '0') dot.style.opacity = '0';
+            continue;
+          }
+          const s = history[sampleIdx];
+          const age = (now - s.t) / TRAIL_LIFETIME_MS; // 0..1
+          const fade = 1 - age;
+          const scale = 0.4 + fade * 0.8;
+          dot.style.transform = `translate3d(${s.x}px, ${s.y}px, 0) scale(${scale})`;
+          dot.style.opacity = String(fade * fade * 0.85);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>

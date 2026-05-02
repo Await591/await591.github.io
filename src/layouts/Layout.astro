@@ -1,0 +1,55 @@
+---
+import '../styles/global.css';
+import BackgroundMarquee from '../components/BackgroundMarquee.astro';
+import ClickEffects from '../components/ClickEffects.astro';
+import CursorOverlay from '../components/CursorOverlay.astro';
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'await591 // terminal profile',
+  description = 'Await591 profile with releases, skills, and contact links.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <!-- Three.js background canvas -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <!-- 2.5D scrolling text behind content, above the WebGL canvas -->
+  <BackgroundMarquee />
+
+  <!-- CRT screen overlays — noise + deeper scanline + vignette -->
+  <div class="screen-noise" aria-hidden="true"></div>
+  <div class="screen-crt" aria-hidden="true"></div>
+  <div class="screen-vignette" aria-hidden="true"></div>
+
+  <slot />
+
+  <!-- Click-burst particles + Three-bg shockwave dispatcher -->
+  <ClickEffects />
+
+  <!-- Custom cursor overlay (above everything; pointer-events: none) -->
+  <CursorOverlay />
+</body>
+</html>

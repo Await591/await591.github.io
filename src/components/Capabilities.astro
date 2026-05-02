@@ -1,0 +1,81 @@
+---
+import { capabilities } from '../data/links.js';
+
+/* Skill proficiency rendered as ASCII bar — index in array drives length. */
+const PROFICIENCY = {
+  'Ableton Live':  9,
+  'FL Studio':     8,
+  'Bitwig':        8,
+  'MuseScore':     6,
+  'Node.js':       7,
+  'JavaScript':    7,
+  'Astro.js':      7,
+  'Three.js':      6,
+  'Docker':        6,
+  'Python':        7,
+  'C/CPP/CS':      6,
+  'Rust':          5,
+  'Verilog':       5,
+  'SystemVerilog': 5,
+  'Vivado':        6,
+  'Jungo':         5,
+  'QEMU':          5,
+};
+
+function bar(level) {
+  const filled = '|'.repeat(level);
+  const empty  = '.'.repeat(10 - level);
+  return `[${filled}${empty}]`;
+}
+---
+
+<section class="section" id="capabilities" aria-labelledby="capabilities-title">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-label">capabilities</p>
+      <h2 class="section-title" id="capabilities-title">STACK / TOOLS / OUTPUT</h2>
+    </div>
+    <p class="section-note">$ ls -la /modules &nbsp;|&nbsp; <span class="accent">{capabilities.length}</span> entries</p>
+  </div>
+
+  <div class="capabilities-grid">
+    {capabilities.map((cap, idx) => {
+      /* Strip the +--- ---+ wrappers so the index can carry the visual weight */
+      const bareLabel = cap.label.replace(/\+-+\s*/g, '').replace(/\s*-+\+/g, '').trim();
+      return (
+      <article class="pane capability-card reveal">
+        <div class="pane-titlebar capability-titlebar">
+          <span class="pane-title">
+            <span class="capability-index">[{String(idx + 1).padStart(2, '0')}]</span>
+            <span class="capability-label-mark">+--</span>
+            <span class="capability-label-name">{bareLabel}</span>
+            <span class="capability-label-mark">--+</span>
+          </span>
+          <span class="status-chip">{cap.status}</span>
+        </div>
+
+        <div class="pane-body">
+          <p class="capability-eyebrow">$ cat /modules/{cap.label.replace(/[^a-z]/gi, '').toLowerCase()}.cfg</p>
+
+          <ul class="capability-skills">
+            {cap.skills.map((skill, i) => (
+              <li class="capability-skill-row">
+                <span class="capability-skill-num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="capability-skill-name">{skill}</span>
+                <span class="capability-skill-bar">{bar(PROFICIENCY[skill] ?? 6)}</span>
+                <span class="capability-skill-pct">{(PROFICIENCY[skill] ?? 6) * 10}%</span>
+              </li>
+            ))}
+          </ul>
+
+          <div class="capability-footer">
+            <span class="capability-foot-label">module</span>
+            <span class="capability-foot-dots">···································</span>
+            <span class="capability-foot-status">loaded</span>
+          </div>
+        </div>
+      </article>
+      );
+    })}
+  </div>
+</section>

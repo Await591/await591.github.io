@@ -1,0 +1,78 @@
+---
+import { releases } from '../data/releases.js';
+import ReleaseMarquee from './ReleaseMarquee.astro';
+---
+
+<section class="section" id="releases" aria-labelledby="releases-title">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-label">selected releases</p>
+      <h2 class="section-title" id="releases-title">OUTPUT LOG</h2>
+    </div>
+    <p class="section-note">$ tail -n {releases.length} /var/log/releases</p>
+  </div>
+
+  <ReleaseMarquee />
+
+  <div class="release-stack">
+    {releases.map((rel) => (
+      <article class="pane release-card reveal" data-cinema>
+        <div class="pane-titlebar">
+          <span class="pane-title">+--- artifact {rel.id} ---+</span>
+          <span class="status-chip">[ spotify ]</span>
+        </div>
+
+        <div class="release-frame">
+          <!-- Cover side: square 1:1 -->
+          <div class="release-cover-wrap">
+            <div
+              class="release-cover"
+              style={`background-image: url('${rel.cover}');`}
+              role="img"
+              aria-label={`${rel.title} cover art`}
+            ></div>
+            <div class="release-cover-frame">
+              <span class="cover-corner cover-corner--tl">+</span>
+              <span class="cover-corner cover-corner--tr">+</span>
+              <span class="cover-corner cover-corner--bl">+</span>
+              <span class="cover-corner cover-corner--br">+</span>
+            </div>
+            <div class="release-cover-meta">
+              <span class="cover-id">id_{rel.id}</span>
+              <span class="cover-fmt">[ jpg · 1:1 ]</span>
+            </div>
+          </div>
+
+          <!-- Content side: terminal log -->
+          <div class="release-content">
+            <p class="release-eyebrow">$ exec /artifact/{rel.id}.play</p>
+            <div class="release-meta-row">
+              <span class="release-meta-key">date</span>
+              <span class="release-meta-val">{rel.date}</span>
+            </div>
+            <div class="release-meta-row">
+              <span class="release-meta-key">genre</span>
+              <span class="release-meta-val">{rel.genre}</span>
+            </div>
+            <h3 class="release-title">{rel.title}</h3>
+            <p class="release-copy">{rel.copy}</p>
+
+            <div class="release-divider">
+              ────────────────────────────────────────
+            </div>
+
+            <a
+              class="release-link"
+              href={rel.link}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span>open artifact</span>
+              <span class="release-arrow">────&gt;</span>
+            </a>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
