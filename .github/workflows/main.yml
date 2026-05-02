@@ -27,16 +27,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
 
-      - name: Install dependencies
-        run: npm ci
-
+      - name: Clean up node_modules
+        run: rm -rf node_modules
       - name: Build site
         run: npm run build
 
