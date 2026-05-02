@@ -27,15 +27,19 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.12.0
           cache: npm
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
 
-      - name: Clean up node_modules
+      - name: Clean node_modules
         run: rm -rf node_modules
+
+      - name: Verify Astro CLI
+        run: npx astro --version
+
       - name: Build site
         run: npm run build
 
